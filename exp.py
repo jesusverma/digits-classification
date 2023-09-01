@@ -4,9 +4,8 @@
 import matplotlib.pyplot as plt
 
 # Import datasets, classifiers and performance metrics
-from sklearn import datasets, metrics, svm
-from sklearn.model_selection import train_test_split
-from utils import   preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval
+from sklearn import metrics, svm
+from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval
 
 ###############################################################################
 
