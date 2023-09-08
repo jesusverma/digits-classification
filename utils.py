@@ -52,10 +52,30 @@ def train_model(x,y,model_params, model_type = "svm"):
 #find all utils here
 def predict_and_eval(model, X_test,y_test):
     predicted = model.predict(X_test)
-    print(
-    f"Classification report for classifier {model}:\n"
-    f"{metrics.classification_report(y_test, predicted)}\n"
-    )
-    return predicted
+    return metrics.accuracy_score(y_test,predicted)
+
+
+
+def tune_hparams(X_train, y_train, X_dev, y_dev, list_of_all_param_combination):
+    best_accuracy_so_far = -1
+    best_model_so_far = None
+
+    for itr in list_of_all_param_combination:
+    # Model trainging
+        cur_model = train_model(X_train, y_train,  {'gamma':0.001 , 'C' : itr["c_range"]}, model_type="svm")
+        cur_accuracy = predict_and_eval(cur_model, X_dev, y_dev)
+
+        # selecting those hparams which give the best perf on dev data set
+        if cur_accuracy > best_accuracy_so_far:
+            # print("New best accuracy: ", cur_accuracy)
+            best_accuracy_so_far = cur_accuracy
+            optimal_gamma = itr["gamma_range"]
+            optimal_c =  itr["c_range"]
+            best_model_so_far = cur_model
+    return  best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c
+
+
+
+
 
 
