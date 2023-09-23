@@ -21,5 +21,6 @@ jobs:
       - name: Install dep
         run:  pip3 install --no-cache-dir -r requirements.txt
       - name: Run experiment
+      - run: echo "🖥️ Print number of total samples in the dataset  and Size (height and width) of the images in dataset "
         run:  python exp.py
           
