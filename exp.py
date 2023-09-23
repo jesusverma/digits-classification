@@ -6,20 +6,55 @@ import itertools
 
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm
-from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams
+from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams, resize_images
 
 ###############################################################################
 
 gamma_ranges = [0.001, 0.01, 0.1, 1, 10, 100]
 c_ranges = [0.1,1,2,5,10]
 
-#1. Get the dataset
-X,y = read_digits()
+# #1. Get the dataset
+# X,y = read_digits()
+
+
+# Load the digits dataset
+digits = datasets.load_digits()
+
+# Define image sizes to test
+image_sizes = [(4, 4), (6, 6), (8, 8)]
+
+# Define train, dev, and test sizes
+train_size = 0.7
+dev_size = 0.1
+test_size = 0.2
+digits = datasets.load_digits()
+
+for size in image_sizes:
+    # Resize images to the specified size
+    resized_images = [resize(image, size, anti_aliasing=True) for image in digits.images]
+
+    # Flatten the resized images
+    n_samples = len(resized_images)
+    data = [image.reshape(-1) for image in resized_images]
+    X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(data,digits.target, dev_size , test_size)
+
+    X_train = preprocess_data(X_train)
+    X_test = preprocess_data(X_test)
+    X_dev = preprocess_data(X_dev)
+        comb_of_gamma_and_c_ranges = [{"gamma_range": x[0], "c_range": x[1]} for x in itertools.product(gamma_ranges,c_ranges)]
+        best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
+        test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
+        train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
+        # print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+        # print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+        print("image_size:",X ,'x' ,"test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
 
 
 
 
-
+# print(X1.shape[1],y1)
+# print(X2.shape[1],y2)
+# print(X3.shape[1],y3)
 
 
 # Data Preprocessing
@@ -55,13 +90,32 @@ X,y = read_digits()
 
 
 
-test_sizes =  [0.1, 0.2, 0.3]
-dev_sizes =  [0.1, 0.2, 0.3]
+# test_sizes =  [0.2]
+# dev_sizes =  [0.1]
 
-for test_size in test_sizes:
-    for dev_size in dev_sizes:
+# for test_size in test_sizes:
+#     for dev_size in dev_sizes:
         
-        X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size , test_size)
+#         X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size , test_size)
+
+#         X_train = preprocess_data(X_train)
+#         X_test = preprocess_data(X_test)
+#         X_dev = preprocess_data(X_dev)
+
+#         comb_of_gamma_and_c_ranges = [{"gamma_range": x[0], "c_range": x[1]} for x in itertools.product(gamma_ranges,c_ranges)]
+#         best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
+#         test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
+#         train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
+#         print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+#         print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+
+# X_samples =  [X1,X2,X3]
+# y_samples =  [y1,y2,y3]
+
+# dev_size = 0.1
+# test_size = 0.2
+# for idx, X in enumerate(X_samples):
+        X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y_samples[idx], dev_size , test_size)
 
         X_train = preprocess_data(X_train)
         X_test = preprocess_data(X_test)
@@ -71,9 +125,10 @@ for test_size in test_sizes:
         best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
         test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
         train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
-        print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
-        print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
-        
+        # print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+        # print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+        print("image_size:",X ,'x' ,"test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+
 
 
 

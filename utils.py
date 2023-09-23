@@ -1,12 +1,22 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn import datasets, metrics, svm
-
+from skimage.transform import  resize
 
 
 def read_digits():
     digits =  datasets.load_digits()
     X = digits.images
+    y = digits.target
+    return X,y
+
+
+def resize_images(num=1):
+    digits =  datasets.load_digits()
+    image = digits.images
+    image_resized = resize(image, (image.shape[0] // num, image.shape[1] // num),
+                       anti_aliasing=True)
+    X = image_resized
     y = digits.target
     return X,y
 
