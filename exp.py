@@ -16,6 +16,12 @@ c_ranges = [0.1,1,2,5,10]
 #1. Get the dataset
 X,y = read_digits()
 
+print("The number of total samples in the dataset (train + test + dev): ", len(X))
+
+image_height, image_width = X.shape[1], X.shape[2]
+
+
+print("Size (height and width) of the images in dataset :- height :", image_height, "width : ", image_width)
 
 
 
@@ -71,8 +77,8 @@ for test_size in test_sizes:
         best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
         test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
         train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
-        print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
-        print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+        # print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+        # print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
         
 
 

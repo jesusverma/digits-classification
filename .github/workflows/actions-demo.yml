@@ -20,6 +20,6 @@ jobs:
       - run: echo "🍏 This job's status is ${{ job.status }}."
       - name: Install dep
         run:  pip3 install --no-cache-dir -r requirements.txt
-      - name: Run experiment
+      - name: Print number of total samples in the dataset  and Size (height and width) of the images in dataset
         run:  python exp.py
           
