@@ -31,16 +31,18 @@ def test_for_hparam_combinations_values():
 
 
 
-# def test_data_split():
-#     X,y = read_digits()
+def test_data_split():
+    X,y = read_digits()
 
-#     X = X[:100,:,:]
-#     y = y[:100]
+    X = X[:100,:,:]
+    y = y[:100]
 
-#     test_size = .1
-#     dev_size = .6
+    test_size = .1
+    dev_size = .6
 
-#     train_size = 1 - (test_size + dev_size)
-#     X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size=dev_size , test_size=test_size)
-    
-#     assert(len(X_train) == int(train_size * len(X))) and (len(X_test) == int(test_size * len(X))) and ((len(X_dev) == int(dev_size * len(X))))
+
+    X_train,X_dev,X_test, y_train, y_dev, y_test = split_train_dev_test(X, y, dev_size=dev_size,  test_size=test_size,)
+
+    assert (len(X_train) == 30) 
+    assert (len(X_test) == 10)
+    assert  ((len(X_dev) == 60))
