@@ -6,12 +6,38 @@ import itertools
 
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm
-from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams
+from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams, get_hyperparameter_combinations
+from joblib import dump, load
 
 ###############################################################################
 
 gamma_ranges = [0.001, 0.01, 0.1, 1, 10, 100]
 c_ranges = [0.1,1,2,5,10]
+
+dicty = {}
+
+
+# Train a Decision Tree classifier
+
+
+
+
+h_params={}
+h_params['gamma'] = gamma_ranges
+h_params['C'] = c_ranges
+h_params_combinations = get_hyperparameter_combinations(h_params)
+dicty['svm'] = h_params_combinations
+
+
+
+
+max_depth_list = [5, 10, 15, 20, 50, 100]
+h_params_tree = {}
+h_params_tree['max_depth'] = max_depth_list
+h_params_trees_combinations = get_hyperparameter_combinations(h_params_tree)
+dicty['tree'] = h_params_trees_combinations
+
+
 
 #1. Get the dataset
 X,y = read_digits()
@@ -55,26 +81,63 @@ X,y = read_digits()
 
 
 
+
+
 test_sizes =  [0.1, 0.2, 0.3]
 dev_sizes =  [0.1, 0.2, 0.3]
 
-for test_size in test_sizes:
-    for dev_size in dev_sizes:
+# for test_size in test_sizes:
+#     for dev_size in dev_sizes:
         
-        X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size , test_size)
+#         X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size , test_size)
 
-        X_train = preprocess_data(X_train)
-        X_test = preprocess_data(X_test)
-        X_dev = preprocess_data(X_dev)
+#         X_train = preprocess_data(X_train)
+#         X_test = preprocess_data(X_test)
+#         X_dev = preprocess_data(X_dev)
 
-        comb_of_gamma_and_c_ranges = [{"gamma_range": x[0], "c_range": x[1]} for x in itertools.product(gamma_ranges,c_ranges)]
-        best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
-        test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
-        train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
-        print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
-        print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+#         comb_of_gamma_and_c_ranges = [{"gamma_range": x[0], "c_range": x[1]} for x in itertools.product(gamma_ranges,c_ranges)]
+#         best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
+#         test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
+#         train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
+#         print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
+#         print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
         
 
+
+
+
+
+
+test_sizes =  [0.2]
+dev_sizes  =  [0.2]
+predictions = []
+epochs = 5
+
+for index in range(epochs):
+    for test_size in test_sizes:
+        for dev_size in dev_sizes:
+            train_size = 1- (test_size + dev_size)
+                           
+            X_train, X_dev, X_test, y_train, y_dev, y_test  = split_train_dev_test(X, y, dev_size=dev_size, test_size=test_size)
+          
+            X_train = preprocess_data(X_train)
+            X_test = preprocess_data(X_test)
+            X_dev = preprocess_data(X_dev)
+
+            for model in dicty:
+                temp_hparam = dicty[model]
+                best_hparams, best_model_path, best_accuracy  = tune_hparams(X_train, y_train, X_dev, 
+                y_dev, temp_hparam, model)        
+
+                best_model = load(best_model_path) 
+
+                test_acc = predict_and_eval(best_model, X_test, y_test)
+                train_acc = predict_and_eval(best_model, X_train, y_train)
+                dev_acc = best_accuracy
+
+                print(f"{model}\ttest_size={test_size:.2f} dev_size={dev_size:.2f} train_size={train_size:.2f} train_acc={train_acc:.2f} dev_acc={dev_acc:.2f} test_acc={test_acc:.2f}")
+                cur_run_results = {'model': model,  'train_acc' : train_acc, 'run_index': index,'dev_acc': dev_acc, 'test_acc': test_acc}
+                results.append(cur_run_results)
 
 
 # 3. Vary the test_size in [0.1, 0.2, 0.3] and dev_size in [0.1, 0.2, 0.3], and github actions should output something like: 
