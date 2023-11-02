@@ -1,6 +1,7 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn import datasets, metrics, svm
+from joblib import dump, load
 
 
 def get_combinations(param_name, param_values, base_combinations):    
@@ -68,23 +69,27 @@ def predict_and_eval(model, X_test,y_test):
 
 
 
-def tune_hparams(X_train, y_train, X_dev, y_dev, list_of_all_param_combination):
+def tune_hparams(X_train, y_train, X_dev, y_dev, list_of_all_param_combination,model_type="svm"):
     best_accuracy_so_far = -1
     best_model_so_far = None
-
+    best_model_path = ""
     for itr in list_of_all_param_combination:
     # Model trainging
-        cur_model = train_model(X_train, y_train,  {'gamma':0.001 , 'C' : itr["c_range"]}, model_type="svm")
+        cur_model = train_model(X_train, y_train, itr, model_type=model_type)
         cur_accuracy = predict_and_eval(cur_model, X_dev, y_dev)
 
         # selecting those hparams which give the best perf on dev data set
         if cur_accuracy > best_accuracy_so_far:
             # print("New best accuracy: ", cur_accuracy)
             best_accuracy_so_far = cur_accuracy
-            optimal_gamma = itr["gamma_range"]
-            optimal_c =  itr["c_range"]
+            best_hparams = itr
+            best_model_path = "./models/{}_".format(model_type) +"_".join(["{}:{}".format(k,v) for k,v in itr.items()]) + ".joblib"
             best_model_so_far = cur_model
-    return  best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c
+
+    dump(best_model_so_far, best_model_path) 
+    print("Model save at {}".format(best_model_path))
+
+    return  best_hparams,best_model_path,best_accuracy_so_far
 
 
 

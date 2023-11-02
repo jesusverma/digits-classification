@@ -7,6 +7,7 @@ import itertools
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm
 from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams, get_hyperparameter_combinations
+from joblib import dump, load
 
 ###############################################################################
 
@@ -64,11 +65,12 @@ X,y = read_digits()
 
 
 
-test_sizes =  [0.1, 0.2, 0.3]
-dev_sizes =  [0.1, 0.2, 0.3]
+test_sizes =  [0.1, 0.2, 0.3, 0.45]
+dev_sizes =  [0.1, 0.2, 0.3, 0.45]
 
 for test_size in test_sizes:
     for dev_size in dev_sizes:
+        train_size = 1- test_size - dev_size
         
         X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size , test_size)
 
@@ -76,12 +78,16 @@ for test_size in test_sizes:
         X_test = preprocess_data(X_test)
         X_dev = preprocess_data(X_dev)
 
-        comb_of_gamma_and_c_ranges = [{"gamma_range": x[0], "c_range": x[1]} for x in itertools.product(gamma_ranges,c_ranges)]
-        best_model_so_far,best_accuracy_so_far,optimal_gamma,optimal_c = tune_hparams(X_train, y_train,X_dev, y_dev,comb_of_gamma_and_c_ranges)
+        best_hparams,best_model_path,best_accuracy_so_far  = tune_hparams(X_train, y_train, X_dev, 
+        y_dev, h_params_combinations)  
+        print(best_model_path)
+        best_model_so_far = load(best_model_path) 
+
         test_accuracy = predict_and_eval(best_model_so_far,X_test,y_test) 
         train_accuracy = predict_and_eval(best_model_so_far,X_train,y_train) 
-        print("test_size= ",test_size, ",dev_size= ",dev_size, ",train_size= ", 1-(test_size+dev_size), "train_acc= ", train_accuracy, "dev_acc= ", best_accuracy_so_far, "test_accuracy= ",test_accuracy)
-        print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+        dev_accuracy = best_accuracy_so_far
+        print("test_size={:.2f} dev_size={:.2f} train_size={:.2f} train_acc={:.2f} dev_acc={:.2f} test_acc={:.2f}".format(test_size, dev_size, train_size, train_accuracy, dev_accuracy, test_accuracy))
+        
         
 
 
