@@ -1,6 +1,6 @@
 
 from sklearn.model_selection import train_test_split
-from sklearn import datasets, metrics, svm
+from sklearn import datasets, metrics, svm, tree
 from joblib import dump, load
 
 
@@ -56,6 +56,9 @@ def train_model(x,y,model_params, model_type = "svm"):
     if model_type == "svm":
     #create a support vector classfier
         clf = svm.SVC
+    if model_type == "tree":
+        # Create a classifier: a decision tree classifier
+        clf = tree.DecisionTreeClassifier
     model = clf(**model_params)
     #train the model
     model.fit(x,y)
@@ -87,7 +90,6 @@ def tune_hparams(X_train, y_train, X_dev, y_dev, list_of_all_param_combination,m
             best_model_so_far = cur_model
 
     dump(best_model_so_far, best_model_path) 
-    print("Model save at {}".format(best_model_path))
 
     return  best_hparams,best_model_path,best_accuracy_so_far
 
