@@ -6,12 +6,19 @@ import itertools
 
 # Import datasets, classifiers and performance metrics
 from sklearn import metrics, svm
-from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams
+from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams, get_hyperparameter_combinations
 
 ###############################################################################
 
 gamma_ranges = [0.001, 0.01, 0.1, 1, 10, 100]
 c_ranges = [0.1,1,2,5,10]
+
+
+h_params={}
+h_params['gamma'] = gamma_ranges
+h_params['C'] = c_ranges
+h_params_combinations = get_hyperparameter_combinations(h_params)
+
 
 #1. Get the dataset
 X,y = read_digits()
@@ -52,6 +59,8 @@ X,y = read_digits()
 # print("Best_model: ", best_model_so_far)
 # print("Best_accuracy: ", best_accuracy_so_far)
 # print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
+
+
 
 
 

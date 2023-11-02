@@ -3,6 +3,19 @@ from sklearn.model_selection import train_test_split
 from sklearn import datasets, metrics, svm
 
 
+def get_combinations(param_name, param_values, base_combinations):    
+    new_combinations = []
+    for value in param_values:
+        for combination in base_combinations:
+            combination[param_name] = value
+            new_combinations.append(combination.copy())    
+    return new_combinations
+    
+def get_hyperparameter_combinations(dict_of_param_lists):    
+    base_combinations = [{}]
+    for param_name, param_values in dict_of_param_lists.items():
+        base_combinations = get_combinations(param_name, param_values, base_combinations)
+    return base_combinations
 
 def read_digits():
     digits =  datasets.load_digits()
@@ -20,20 +33,19 @@ def preprocess_data(data):
 # Split data into 50% train and 50% test subsets
 def split_data(x,y,test_size,random_state=1):
     X_train, X_test, y_train, y_test = train_test_split(
-        x,y, test_size=0.5,random_state=random_state
+        x,y, test_size=test_size,random_state=random_state
     )
     return X_train, X_test, y_train, y_test
 
 
 
 def split_train_dev_test(x,y,dev_size,test_size,random_state=1):
-    train_ratio = 1 - (dev_size + test_size)
-    X_train, X_test_n_dev, y_train, y_test_n_dev = train_test_split(
-        x,y, test_size=1-train_ratio,random_state=random_state
+    X_train_dev, X_test, y_train_dev, y_test = split_data(
+        x,y, test_size=test_size,random_state=random_state
     )
     # test is now (test_size * 100)% of the initial data set
     # dev is now (dev_size * 100)% of the initial data set
-    X_dev, X_test, y_dev, y_test = train_test_split(X_test_n_dev, y_test_n_dev, test_size=test_size/(test_size + dev_size)) 
+    X_train, X_dev, y_train, y_dev = split_data(X_train_dev, y_train_dev, dev_size/(1-test_size ),random_state=1) 
     return X_train,X_dev,X_test, y_train, y_dev, y_test
 
 
