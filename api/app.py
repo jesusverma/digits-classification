@@ -10,7 +10,7 @@ import os
 import base64
 import io
 
-app = Flask(__name)
+app = Flask(__name__)
 model = keras.models.load_model('models/svm_gamma.joblib')
 def predict(image):
     image = image.convert('L')
