@@ -1,46 +1,55 @@
-
 from flask import Flask, request, jsonify
 from PIL import Image
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
-
-
-import os
-import base64
-import io
+from io import BytesIO
+import joblib
 
 app = Flask(__name__)
-model = keras.models.load_model('models/svm_gamma.joblib')
-def predict(image):
-    image = image.convert('L')
-    image = image.resize((28, 28))
-    image = np.array(image) / 255.0
 
-    prediction = model.predict(np.expand_dims(image, axis=0))
-    digit = np.argmax(prediction)
+# Load the model
+model = joblib.load('models/svm_gamma.joblib')
 
-    return digit
+def preprocess_image(image_bytes, size=(8, 8)):
+    image = Image.open(BytesIO(image_bytes)).convert('L')
+    image = image.resize(size, Image.LANCZOS)
+    image_array = np.array(image).reshape(1, -1)
+    return image_array
 
-@app.route('/predict_images', methods=['POST'])
-def predict_images():
+def predict_digit(image_array):
+    return model.predict(image_array)[0]
+
+def compare_digits(image1_bytes, image2_bytes):
     try:
-        data = request.get_json()
-        
-        if 'im1' in data and 'im2' in data:
-            temp_image1 = Image.open(io.BytesIO(base64.b64decode(data['im1'])))
-            temp_image2 = Image.open(io.BytesIO(base64.b64decode(data['im2'])))
-            digit1 = predict(temp_image1)
-            digit2 = predict(temp_image2)
-            resp = digit1 == digit2
+        image1_arr = preprocess_image(image1_bytes)
+        image2_arr = preprocess_image(image2_bytes)
 
-            return jsonify({'result': resp})
+        pred1 = predict_digit(image1_arr)
+        pred2 = predict_digit(image2_arr)
 
-        else:
-            return jsonify({'error': 'Invalid JSON data'})
+        result = pred1 == pred2
+        return bool(result)
 
     except Exception as e:
-        return jsonify({'error': str(e)})
+        return str(e)
+
+@app.route('/predict_images', methods=['POST'])
+def compare_digits_route():
+    try:
+        if 'image1' not in request.files or 'image2' not in request.files:
+            return jsonify(error='Please provide two images.'), 400
+
+        image1_bytes = request.files['image1'].read()
+        image2_bytes = request.files['image2'].read()
+
+        result = compare_digits(image1_bytes, image2_bytes)
+
+        if isinstance(result, bool):
+            return jsonify(same_digit=result)
+        else:
+            return jsonify(error=result)
+
+    except Exception as e:
+        return jsonify(error=str(e))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
