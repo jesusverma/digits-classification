@@ -7,7 +7,7 @@ import joblib
 app = Flask(__name__)
 
 # Load the model
-model = joblib.load('models/svm_gamma.pkl')
+model = joblib.load('../models/svm_gamma.pkl')
 
 def preprocess_image(image_bytes, size=(8, 8)):
     image = Image.open(BytesIO(image_bytes)).convert('L')
