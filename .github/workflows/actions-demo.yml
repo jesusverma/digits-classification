@@ -17,7 +17,15 @@ jobs:
       - name: List files in the repository
         run: |
           ls -r ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+      - name: Install Dependencies
+        run: |
+          echo "🚀 Installing dependencies from requirements.txt..."
+          pip install --no-cache-dir -r requirements.txt
+      - name: Run Tests
+        run: |
+          echo "🔍 Running tests..."
+          cd api
+          pytest -s
       # - name: Install dep
       #   run:  pip3 install --no-cache-dir -r requirements.txt
       # - name: Run Pytest
