@@ -7,7 +7,7 @@ import joblib
 app = Flask(__name__)
 
 # Load the model
-model = joblib.load('models/svm_gamma.joblib')
+model = joblib.load('../models/svm_gamma.pkl')
 
 def preprocess_image(image_bytes, size=(8, 8)):
     image = Image.open(BytesIO(image_bytes)).convert('L')
@@ -50,6 +50,24 @@ def compare_digits_route():
 
     except Exception as e:
         return jsonify(error=str(e))
+
+def process_image_bytes(image_bytes):
+    processed_image = Image.open(BytesIO(image_bytes)).convert('L')
+    processed_image = processed_image.resize((8, 8), Image.LANCZOS)
+    processed_image_array = np.array(processed_image).reshape(1, -1)
+    return processed_image_array
+
+@app.route('/predict_image_of_digit', methods=['POST'])
+def predict_digit():
+    if 'image' not in request.files:
+        return jsonify(error='Please provide an image.'), 400
+
+    user_image_bytes = request.files['image'].read()
+
+    processed_image_array = process_image_bytes(user_image_bytes)
+    prediction_result = model.predict(processed_image_array)
+
+    return jsonify(predicted_digit=int(prediction_result[0]))
 
 if __name__ == '__main__':
     app.run(debug=True)
