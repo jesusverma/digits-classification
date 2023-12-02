@@ -24,6 +24,10 @@ jobs:
       - name: Run Tests
         run: |
           echo "🔍 Running tests..."
+          python lr_exp.py
+      - name: Run Tests
+        run: |
+          echo "🔍 Running tests..."
           cd api
           pytest -s
       # - name: Install dep

@@ -1,5 +1,7 @@
 from utils import get_hyperparameter_combinations, split_train_dev_test, read_digits, preprocess_data, tune_hparams
 import os
+import joblib
+
 
 def test_for_hparam_combinations_count():
     gamma_ranges = [0.001, 0.01, 0.1, 1, 10, 100]
@@ -69,3 +71,39 @@ def test_data_split():
     assert (len(X_train) == 30) 
     assert (len(X_test) == 10)
     assert ((len(X_dev) == 60))
+
+
+
+
+model_filenames = [
+        "m22aie203_logistic_regression_lbfgs.joblib",
+        "m22aie203_logistic_regression_liblinear.joblib",
+        "m22aie203_logistic_regression_newton-cg.joblib",
+        "m22aie203_logistic_regression_sag.joblib",
+        "m22aie203_logistic_regression_saga.joblib"
+    ]
+
+def check_solver_name_in_filename():
+    for model_filename in model_filenames:
+        filename_solver = extract_solver_from_filename(model_filename)
+        
+        # Load the model and get its solver parameter
+        model = load_model(os.path.join(LR_MODEL_DIR, model_filename))
+        model_solver = get_model_solver(model)
+        
+        assert filename_solver == model_solver, f"Solver name in filename ({filename_solver}) does not match the model's solver ({model_solver})"
+
+def extract_solver_from_filename(filename):
+    return filename.split("_")[-1].split(".")[0]
+
+def load_model(model_path):
+    return joblib.load(model_path)
+
+def get_model_solver(model):
+    return model.get_params()['solver']
+
+# Assuming LR_MODEL_DIR is defined somewhere in your code
+LR_MODEL_DIR = "./models"
+
+# Call the function to check solver names
+check_solver_name_in_filename()

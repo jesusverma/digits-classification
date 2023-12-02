@@ -1,13 +1,33 @@
 from flask import Flask, request, jsonify
 from PIL import Image
 import numpy as np
+from sklearn.preprocessing import Normalizer
 from io import BytesIO
 import joblib
+import os
+
 
 app = Flask(__name__)
 
 # Load the model
-model = joblib.load('../models/svm_gamma.pkl')
+model = joblib.load('../models/m22aie203_svm.joblib')
+
+model_dir = "../models"
+
+
+normalizer = Normalizer(norm='l2')
+
+models = {}
+
+
+def load_model():
+   models['tree'] = joblib.load(os.path.join(model_dir, 'm22aie203_tree.joblib'))
+   models['svm'] = joblib.load(os.path.join(model_dir, 'm22aie203_svm.joblib'))
+   models['logistic_regression'] = joblib.load(os.path.join(model_dir, 'm22aie203_logistic_regression.joblib'))
+    
+
+# Load models
+load_model()
 
 def preprocess_image(image_bytes, size=(8, 8)):
     image = Image.open(BytesIO(image_bytes)).convert('L')
@@ -31,6 +51,27 @@ def compare_digits(image1_bytes, image2_bytes):
 
     except Exception as e:
         return str(e)
+
+
+@app.route('/predict_accor_model/<model_type>', methods=['POST'])
+def predict_accor_model(model_type):
+    if model_type not in models:
+        return jsonify(error='Model type not supported.'), 400
+
+    if 'image' not in request.files:
+        return jsonify(error='Please provide an image.'), 400
+
+    model = models[model_type]
+
+    image_bytes = request.files['image'].read()
+    image = Image.open(BytesIO(image_bytes)).convert('L')
+    image = image.resize((8, 8), Image.LANCZOS)
+    
+    image_arr = np.array(image).reshape(1, -1)
+    image_arr_normalized = normalizer.transform(image_arr)
+    pred = model.predict(image_arr_normalized)
+
+    return jsonify(predicted_digit=int(pred[0]))
 
 @app.route('/predict_images', methods=['POST'])
 def compare_digits_route():

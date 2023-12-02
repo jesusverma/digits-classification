@@ -1,23 +1,17 @@
-# FROM ubuntu:23.10
-FROM python:3.9.17
-# copy the whole code directory
-COPY . /digits/
-# RUN apt-get update
-# RUN apt-get install -y python3 python3-pip
-RUN pip3 install -r /digits/requirements.txt
+# Use the DependencyDockerfile as the base image
+FROM digits_classification_dependecy:v1
 
-RUN pip3 install Flask
-
-# need python
-# no need for conda or venv
+# Set the working directory to /digits
 WORKDIR /digits
 
-# VOLUME /digits/models
+# Make port 5000 available to the world outside this container
 EXPOSE 5000
-# requirements installation
-# CMD ["python3","exp.py"]
-ENV FLASK_APP=api/app.py
 
-CMD ["flask","run", "--host=0.0.0.0"]
+# Set environment variable for Flask app
+ENV FLASK_APP=api/api.py
 
+# Define the default command to run when the container starts
+CMD ["flask", "run", "--host=0.0.0.0"]
 
+# Run pytest for unit testing
+CMD ["pytest"]

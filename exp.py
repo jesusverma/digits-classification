@@ -8,8 +8,12 @@ import itertools
 from sklearn import metrics, svm
 
 from utils import  preprocess_data, split_data, train_model, read_digits, split_train_dev_test, predict_and_eval, tune_hparams, get_hyperparameter_combinations
+import joblib
+
 from joblib import dump, load
 import pandas as pd
+import os
+
 ###############################################################################
 
 
@@ -39,49 +43,24 @@ h_params_trees_combinations = get_hyperparameter_combinations(h_params_tree)
 classifier_param_dict['tree'] = h_params_trees_combinations
 
 
-
-
-# Data Preprocessing
-# X_train, X_test, y_train, y_test = split_data(X,y, test_size=0.3)
-
-# train_ratio = 0.75
-# dev_size = 0.15
-# test_size = 0.10
-
-# # train is now 75% of the entire data set
-# x_train, x_test, y_train, y_test = train_test_split(dataX, dataY, test_size=1 - train_ratio)
-
-# # test is now 10% of the initial data set
-# # validation is now 15% of the initial data set
-# x_val, x_test, y_val, y_test = train_test_split(x_test, y_test, test_size=test_size/(test_ratio + validation_ratio)) 
-# dev_size = 0.15
-# test_size = 0.10
-# X_train, X_dev, X_test, y_train, y_dev, y_test = split_train_dev_test(X,y, dev_size=0.15 , test_size=0.20)
-
-
-#  Data splittting for create train and test sets
-# X_train = preprocess_data(X_train)
-# X_test = preprocess_data(X_test)
-# X_dev = preprocess_data(X_dev)
-
-# Find Hpyer Parameter Tunning here
-# For HPT we need to take all combinations of gamma and C
-
-
-# print("Best_model: ", best_model_so_far)
-# print("Best_accuracy: ", best_accuracy_so_far)
-# print("Best_hparams: gamma", optimal_gamma, "C: ", optimal_c)
-
+h_params_lr={}
+h_params_lr['solver'] = ['liblinear', 'newton-cg', 'lbfgs', 'sag', 'saga']
+h_params_lr['C'] = [100]
+h_params_lr_combinations = get_hyperparameter_combinations(h_params_lr)
+classifier_param_dict['logistic_regression'] = h_params_lr_combinations
 
 
 
 
 results = []
 test_sizes =  [0.2]
-dev_sizes  =  [0.2]
+dev_sizes  =  [0.1]
 
 
 num_runs  = 5
+
+def save_model(model, filename):
+    joblib.dump(model, filename)
 
 for cur_run_i in range(num_runs):
     for test_size in test_sizes:
@@ -109,6 +88,9 @@ for cur_run_i in range(num_runs):
 
                 print("{}\ttest_size={:.2f} dev_size={:.2f} train_size={:.2f} train_accuracy={:.2f} dev_accuracy={:.2f} test_accuracy={:.2f}".format(model_type, test_size, dev_size, train_size, train_accuracy, dev_accuracy, test_accuracy))
                 
+                if model_type == "logistic_regression":
+                    print("Jesuis",best_model_path)
+
                 cur_run_results = {'model_type': model_type, 'run_index': cur_run_i, 'train_accuracy' : train_accuracy, 'dev_accuracy': dev_accuracy, 'test_accuracy': test_accuracy}
                 results.append(cur_run_results)            
         
